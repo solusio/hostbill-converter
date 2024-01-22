@@ -1,6 +1,6 @@
 <?php
 
-class ConvertCommand extends BaseCommand
+class ReconfigureCommand extends BaseCommand
 {
     /**
      * @param int|string $orderPage
@@ -59,7 +59,7 @@ class ConvertCommand extends BaseCommand
             $this->db->beginTransaction();
 
             // Convert accounts (server entities in Hostbill) of v1 to v2
-            $accounts = $this->db->getAccounts($product['product_id']);
+            $accounts = $this->db->getAccounts((int)$product['product_id']);
             $totalServers += count($accounts);
 
             // Update virtual servers (Hostbill accounts)
@@ -76,7 +76,12 @@ class ConvertCommand extends BaseCommand
                             'userid' => $servers[$v2serverId]['user_id'],
                         ];
 
-                        $this->db->updateAccount($account['id'], $this->v2Api->serverId, serialize($data));
+                        $this->db->updateAccount(
+                            $account['id'],
+                            $this->v2Api->serverId,
+                            serialize($data),
+                            $product['product_id'],
+                        );
                         continue;
                     }
 

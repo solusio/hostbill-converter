@@ -10,6 +10,8 @@ class FileService
     public const PLANS = 'plans';
     public const LOCATIONS = 'locations';
     public const ROLES = 'roles';
+    public const PACKAGES = 'packages';
+    public const HOSTBILL_ACCOUNTS = 'hostbill_accounts';
 
     public function load(string $file): array
     {

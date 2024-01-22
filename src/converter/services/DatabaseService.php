@@ -60,15 +60,15 @@ class DatabaseService
 
     public function getProducts(int $module): array
     {
-        $q = $this->db->prepare('select * from hb_products_modules where module = ?;');
+        $q = $this->db->prepare('select * from hb_products_modules left join hb_products on id = product_id where module = ?;');
         $q->execute([$module]);
         return $q->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function updateAccount(int $id, int $serverId, string $details): void
+    public function updateAccount(int $id, int $serverId, string $details, int $productId): void
     {
-        $q = $this->db->prepare("update hb_accounts set server_id = ?, extra_details = ? where id = ?;");
-        $q->execute([$serverId, $details, $id]);
+        $q = $this->db->prepare("update hb_accounts set server_id = ?, extra_details = ?, product_id = ? where id = ?;");
+        $q->execute([$serverId, $details, $productId, $id]);
     }
 
     public function updateProduct(int $productId, int $orderPage, int $orderType): void
@@ -155,6 +155,117 @@ EOT;
     {
         $q = $this->db->prepare('INSERT INTO hb_config_items (category_id, name, variable_id, sort_order) values (?, ?, ?, ?)');
         $q->execute([$categoryId, $name, $value, $sortOrder]);
+    }
+
+    public function getProductTypeId(string $type): int
+    {
+        $q = $this->db->prepare('select id from hb_product_types where type = ?');
+        $q->execute([$type]);
+        $d = $q->fetch(PDO::FETCH_ASSOC);
+        return (int)$d['id'];
+    }
+
+    public function getCategories(int $ptype): array
+    {
+        $q = $this->db->prepare('select * from hb_categories where ptype = ? order by parent_id, id');
+        $q->execute([$ptype]);
+        return $q->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function copyCategory(array $data, int $parentId, int $ptype): int
+    {
+        $postfix = "v2";
+
+        $q = $this->db->prepare('select max(sort_order) as last from hb_categories');
+        $q->execute();
+        $d = $q->fetch(PDO::FETCH_ASSOC);
+        $sortOrder = (int)$d['last'];
+
+        $sql = <<<EOT
+INSERT INTO hb_categories (parent_id, contains, module, name, description, visible, sort_order, template, ctype, ptype, slug, opconfig, scenario_id)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+EOT;
+
+        $name = $data['name'] . ' ' . $postfix;
+        $q = $this->db->prepare($sql);
+        $q->execute([
+            $parentId,
+            $data['contains'],
+            $data['module'],
+            $name,
+            $data['description'],
+            $data['visible'],
+            $sortOrder + 1,
+            $data['template'],
+            $data['ctype'],
+            $ptype,
+            $data['slug'] . '-' . $postfix,
+            $data['opconfig'],
+            $data['scenario_id'],
+        ]);
+
+        $q = $this->db->prepare('select id from hb_categories where name = ?');
+        $q->execute([$name]);
+        $d = $q->fetch(PDO::FETCH_ASSOC);
+        return (int)$d['id'];
+    }
+
+    public function copyProduct(array $data, int $orderPage, int $orderType): int
+    {
+        $sql = <<<EOT
+INSERT INTO hb_products (category_id, type, name, description, visible, domain_options, stock, qty, autosetup, subdomain, owndomain, owndomainwithus, tax, tax_group_id, upgrades, sort_order, client_limit, hostname, autohostname, username_generation, p_options, code, contract_id, layout, metadata)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+ 
+EOT;
+        $q = $this->db->prepare($sql);
+        $q->execute([
+            $orderPage,
+            $orderType,
+            $data['name'],
+            $data['description'],
+            $data['visible'],
+            $data['domain_options'],
+            $data['stock'],
+            $data['qty'],
+            $data['autosetup'],
+            $data['subdomain'],
+            $data['owndomain'],
+            $data['owndomainwithus'],
+            $data['tax'],
+            $data['tax_group_id'],
+            $data['upgrades'],
+            $data['sort_order'],
+            $data['client_limit'],
+            $data['hostname'],
+            $data['autohostname'],
+            $data['username_generation'],
+            $data['p_options'],
+            $data['code'],
+            $data['contract_id'],
+            $data['layout'],
+            $data['metadata'],
+        ]);
+
+        $q = $this->db->prepare('select id from hb_products where name = ? and category_id = ?');
+        $q->execute([$data['name'], $orderPage]);
+        $d = $q->fetch(PDO::FETCH_ASSOC);
+        return (int)$d['id'];
+    }
+
+    public function copyProductModule(int $productId, int $main, int $module, int $serverId, string $options): void
+    {
+        $sql = <<<EOT
+INSERT INTO hb_products_modules (product_id, main, module, server, options)
+VALUES (?, ?, ?, ?, ?);
+EOT;
+        $q = $this->db->prepare($sql);
+        $q->execute([
+            $productId,
+            $main,
+            $module,
+            $serverId,
+            $options,
+        ]);
     }
 
     public function beginTransaction(): void {
