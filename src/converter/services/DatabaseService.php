@@ -20,7 +20,7 @@ class DatabaseService
 
     public function getModule(string $product): int
     {
-        $q = $this->db->prepare("select id from hb_modules_configuration where module like \"%$product%\";");
+        $q = $this->db->prepare("select id from hb_modules_configuration where filename = \"class.$product.php\";");
         $q->execute();
         $data = $q->fetch(PDO::FETCH_ASSOC);
         return (int)$data['id'];
