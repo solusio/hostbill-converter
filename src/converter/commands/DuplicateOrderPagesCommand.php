@@ -38,7 +38,7 @@ class DuplicateOrderPagesCommand extends BaseCommand
         $configType = $this->db->getConfigType();
 
         $solusvm1ProductType = $this->db->getProductTypeId('soluspanel');
-        $solusvm2ProductType = $this->db->getProductTypeId('Dedicated');
+        $solusvm2ProductType = $this->db->getProductTypeId('solusiotype');
         $categories = $this->db->getCategories($solusvm1ProductType);
 
         $categoryMap = [];
@@ -51,6 +51,8 @@ class DuplicateOrderPagesCommand extends BaseCommand
 
         $v1Module = $this->db->getModule(DatabaseService::SolusVMv1);
         $v1Products = $this->db->getProducts($v1Module);
+
+        echo "Number of founded products: " . count($v1Products) . "\n";
 
         $productMap = [];
         foreach ($v1Products as $product) {
@@ -169,8 +171,8 @@ class DuplicateOrderPagesCommand extends BaseCommand
             $this->db->addWidgets($product['product_id']);
         }
 
-        $this->fileService->save(FileService::PACKAGES, $productMap);
+        echo "Number of converted products: " . count($productMap) . "\n";
 
-        echo "Done!\n";
+        $this->fileService->save(FileService::PACKAGES, $productMap);
     }
 }

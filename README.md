@@ -72,7 +72,7 @@ It is possible to revert converted SolusVM 2 account back to SolusVM 1.
 
 4. Run `php index.php convert-accounts` to convert SolusVM 1 accounts to SolusVM 2 accounts if its servers were imported
 
-5. Run `php index.php revert-accounts --accounts=1,2` to revert conversion of converted to SolusVM 2 accounts with ID`s 1 and 2 to SolusVM 1. Available flags:
+5. Run `php index.php revert-accounts --accounts=1,2` to revert conversion of converted to SolusVM 2 accounts with ID`s 1 and 2 to SolusVM 1 if it is needed. Available flags:
    * `--accounts` - list of SolusVM 2 account ID`s to convert them back to SolusVM 1 account
 
 6. To continue conversion process run `php index.php prepare-servers` to load new information about imported SolusVM 2 servers and then go to step 4 again

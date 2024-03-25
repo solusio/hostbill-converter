@@ -17,8 +17,12 @@ class ConvertAccountsCommand extends BaseCommand
             $initialAccounts = [];
         }
 
+        $totalAccounts = 0;
+        $convertedAccounts = 0;
+
         foreach ($v1Products as $product) {
             $accounts = $this->db->getAccounts((int)$product['product_id']);
+            $totalAccounts += count($accounts);
 
             // Update virtual servers (Hostbill accounts)
             foreach ($accounts as $account) {
@@ -57,9 +61,14 @@ class ConvertAccountsCommand extends BaseCommand
                 ];
 
                 $this->db->updateAccount($account['id'], $this->v2Api->serverId, serialize($data), $productId);
+
+                $convertedAccounts++;
             }
         }
 
         $this->fileService->save(FileService::HOSTBILL_ACCOUNTS, $initialAccounts);
+
+        echo "Total number of accounts: $totalAccounts\n";
+        echo "Number of updated accounts: $convertedAccounts\n";
     }
 }

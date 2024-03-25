@@ -16,5 +16,7 @@ class RevertAccountsCommand extends BaseCommand
 
             $this->db->updateAccount($id, $account['server_id'], $account['extra_details'], $account['product_id']);
         }
+
+        echo "Done!";
     }
 }
